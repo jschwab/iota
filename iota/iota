@@ -6,6 +6,10 @@ from find import find
 
 if __name__ == '__main__':
 
+    # read in the default config
+    # TODO
+
+    # parse the options
     parser = argparse.ArgumentParser(description='Tools to work with a paperdir')
 
     subparsers = parser.add_subparsers(title='subcommands',
@@ -23,4 +27,7 @@ if __name__ == '__main__':
     parser_find.set_defaults(func=find)
 
     args = parser.parse_args()
-    args.func(args)
+
+    # open up a Xapian connection
+    db = None
+    args.func(db, args)
