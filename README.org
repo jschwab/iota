@@ -1,0 +1,33 @@
+* iota
+iota is a paper indexer and searcher.  It is in the spirit of djcb's
+mu for mail. The program structure is inspired by that work and using
+a single Greek letter as a name is intended as an homage.  Though if
+one wishes, one can backronym it to "index of the articles".
+
+The end-goal is to have a simple paper browser that I can use from
+within emacs, though that portion of the interaction is presently
+undeveloped.
+* Subcommands
+** Index
+In-progress
+** Find
+Future
+** Server
+Future (and then iota4e)
+* Paperdir
+A paperdir is defined to be any directory which has at least one
+sub-directory that meets the following criteria:
++ it contains no sub-directories
++ it must contain exactly one BibTex (.bib) file
++ that BibTeX file must contain exactly one bibliography entry
++ must contain one PDF (.pdf) file with the same basename as the
+  BibTeX file
+Other sub-directories can exist, but will be ignored.
+
+* Requirements (Arch Linux)
++ python2-pybtex [AUR]
++ python2-xapian [community]
+* Author
+Josiah Schwab <jschwab@gmail.com>
+* LICENSE
+probably GPL, but we'll see
