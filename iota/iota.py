@@ -3,6 +3,8 @@
 import argparse
 import xapian
 
+VERSION="(prerelease)"
+
 # define a set of term prefixes for Xapian
 # begin with a subset of the ones from
 # http://xapian.org/docs/omega/termprefixes
@@ -22,8 +24,9 @@ TERMPREFIX_JOURNAL='XJ'
 
 if __name__ == '__main__':
 
-    from index import index
     from find import find
+    from index import index
+    from server import server
 
     # read in the default config
     # TODO
@@ -31,7 +34,6 @@ if __name__ == '__main__':
 
     # parse the options
     parser = argparse.ArgumentParser(description='Tools to work with a paperdir')
-
     subparsers = parser.add_subparsers(title='subcommands',
                                        help='valid subcommands')
 
@@ -46,13 +48,13 @@ if __name__ == '__main__':
     parser_find.add_argument('query', help='search query')
     parser_find.set_defaults(func=find)
 
+    # create the parser for the "server" command
+    parser_find = subparsers.add_parser('server', help='backend for iota4e')
+    parser_find.set_defaults(func=server)
+
     args = parser.parse_args()
 
     # open up a Xapian connection
     db = xapian.WritableDatabase(dbfilename, xapian.DB_CREATE_OR_OPEN)
 
     args.func(db, args)
-
-# Local Variables:
-# mode: python
-# End:
