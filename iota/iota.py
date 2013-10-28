@@ -22,6 +22,13 @@ TERMPREFIX_YEAR='Y'
 TERMPREFIX_ABSTRACT='XA'
 TERMPREFIX_JOURNAL='XJ'
 
+TERMPREFIXES = (
+    ('author',TERMPREFIX_AUTHOR),
+    ('keyword', TERMPREFIX_KEYWORD),
+    ('year', TERMPREFIX_YEAR),
+    ('abstract', TERMPREFIX_ABSTRACT),
+)
+
 if __name__ == '__main__':
 
     from find import find
