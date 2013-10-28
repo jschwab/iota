@@ -20,8 +20,8 @@ sub-directory that meets the following criteria:
 + it contains no sub-directories
 + it must contain exactly one BibTex (.bib) file
 + that BibTeX file must contain exactly one bibliography entry
-+ must contain one PDF (.pdf) file with the same basename as the
-  BibTeX file
++ it will usually contain one PDF (.pdf) file with the same basename
+  as the BibTeX file
 Other sub-directories can exist, but will be ignored.
 
 * Requirements (Arch Linux)
