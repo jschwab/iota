@@ -31,6 +31,7 @@ TERMPREFIXES = (
 
 if __name__ == '__main__':
 
+    from fetch import fetch
     from find import find
     from index import index
     from server import server
@@ -41,13 +42,14 @@ if __name__ == '__main__':
 
     # parse the options
     parser = argparse.ArgumentParser(description='Tools to work with a paperdir')
+    parser.add_argument('-p', '--paperdir', metavar='<paperdir>',
+                        help='top of the paperdir')
+
     subparsers = parser.add_subparsers(title='subcommands',
                                        help='valid subcommands')
 
     # create the parser for the "index" command
     parser_index = subparsers.add_parser('index', help='index the articles in a paperdir')
-    parser_index.add_argument('-p', '--paperdir', metavar='<paperdir>',
-                              help='top of the paperdir')
     parser_index.set_defaults(func=index)
 
     # create the parser for the "find" command
@@ -58,6 +60,12 @@ if __name__ == '__main__':
     # create the parser for the "server" command
     parser_find = subparsers.add_parser('server', help='backend for iota4e')
     parser_find.set_defaults(func=server)
+
+    # create the parser for the "fetch" command
+    parser_fetch = subparsers.add_parser('fetch', help='fetch paper from ADS')
+    parser_fetch.add_argument('id', metavar='id',
+                              help='ADS/arXiv id for the paper')
+    parser_fetch.set_defaults(func=fetch)
 
     args = parser.parse_args()
 
