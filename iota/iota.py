@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 
 import argparse
+import logging
+import os.path
 import xapian
 
 VERSION="(prerelease)"
@@ -36,20 +38,32 @@ if __name__ == '__main__':
     from index import index
     from server import server
 
-    # read in the default config
-    # TODO
-    dbfilename = "/tmp/iota.db" # default will be ~/.iota/xapian
+    # TODO: read in the default config
+
+    dbfilename = os.path.expanduser("~/.iota/xapian")
+    rcfilename = os.path.expanduser("~/.iotarc")
+    paperdir = os.path.expanduser("~/Papers")
+    logfilename = os.path.expanduser("~/.iota/log/iota.log")
 
     # parse the options
-    parser = argparse.ArgumentParser(description='Tools to work with a paperdir')
+    parser = argparse.ArgumentParser(description='Tools to work with paperdirs')
     parser.add_argument('-p', '--paperdir', metavar='<paperdir>',
+                        default=paperdir,
                         help='top of the paperdir')
+    parser.add_argument('-x', '--xapiandb', metavar='<xapiandb>',
+                        default=dbfilename,
+                        help='location of xapian database')
+    parser.add_argument('-l', '--logfile', metavar='<logfile>',
+                        default=logfilename,
+                        help='location of log file')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='generate extra debug information')
 
     subparsers = parser.add_subparsers(title='subcommands',
                                        help='valid subcommands')
 
     # create the parser for the "index" command
-    parser_index = subparsers.add_parser('index', help='index the articles in a paperdir')
+    parser_index = subparsers.add_parser('index',help='index the articles in a paperdir')
     parser_index.set_defaults(func=index)
 
     # create the parser for the "find" command
@@ -69,7 +83,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    # fire up the logger
+    logging.basicConfig(filename=logfilename, level=logging.DEBUG)
+
+    logging.debug('Started iota')
+
     # open up a Xapian connection
-    db = xapian.WritableDatabase(dbfilename, xapian.DB_CREATE_OR_OPEN)
+    db = xapian.WritableDatabase(args.xapiandb, xapian.DB_CREATE_OR_OPEN)
 
     args.func(db, args)
+
+    logging.debug('Finished iota')

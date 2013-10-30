@@ -1,4 +1,5 @@
 import StringIO
+import logging
 import os
 import re
 import sys
@@ -25,18 +26,18 @@ class ADSPaper:
     def __init__(self, id):
 
         self.id = id
-        print(self.id)
+        logging.info("Preparing to fetch %s", id)
 
         if ID_BIBCODE.match(id):
             self.bibcode = id
             self._paper_url = ADS_PAPER_URL
-            # logging.info("%s is a valid ADS id", id)
+            logging.info("%s is a valid ADS id", id)
         elif ID_arXiv.match(id):
             self.bibcode = arXiv2ADS(id)
             self._paper_url = ARXIV_PAPER_URL
-            #logging.info("%s is a valid arXiv id", id)
+            logging.info("%s is a valid arXiv id", id)
         else:
-            print("uhoh")
+            pass
             # raise ADSError("Not a valid bibcode")
 
         # prepare to retrieve BibTeX information
@@ -53,15 +54,13 @@ class ADSPaper:
 
     def get_bibtex(self):
         """Retrive the BibTeX entry for this paper"""
-        print("getting bibtex")
+        logging.debug("Fetching BibTex file")
         self._bibtex = urllib2.urlopen(self._bibtex_url.format(self.bibcode)).read()
-        print(self._bibtex.decode("utf-8"))
 
         parser = bibtex.Parser()
         bd = parser.parse_stream(StringIO.StringIO(self._bibtex.decode('utf-8')))
         bibkey = [x for x in bd.entries][0]
         self.bibdata = bd.entries[bibkey]
-
 
     def save_bibtex(self, filename):
         """Retrive and save the BibTeX entry for this paper"""
@@ -96,7 +95,6 @@ class ADSPaper:
             return "{}_{}".format(first_author, year)
 
 
-
 def fetch(database, args):
     """Fetch a paper from ADS.
 
@@ -104,8 +102,7 @@ def fetch(database, args):
 
     paper = ADSPaper(args.id)
 
-    print(paper.name())
-    print(paper.title())
+    logging.info("Retreived paper %s", paper.name())
 
     # the folder hierarchy is based on year and last initial of first author
 
@@ -128,13 +125,19 @@ def fetch(database, args):
     try:
         os.mkdir(uniquedir)
     except OSError:
-#        logging.warning("This paper is already present in your library")
+        logging.warning("This paper is already present in your library")
         return
+    else:
+        logging.debug("Created directory %s", uniquedir)
 
     # save the BibTeX file
     bibfilename = os.path.join(uniquedir, "{}.bib".format(paper.name()))
     paper.save_bibtex(bibfilename)
+    logging.info("Saved BibTeX file %s", bibfilename)
 
     # download a PDF
     pdffilename = os.path.join(uniquedir, "{}.pdf".format(paper.name()))
     paper.save_pdf(pdffilename)
+    logging.info("Saved PDF file %s", pdffilename)
+
+    # TODO: check that you actually got a PDF!

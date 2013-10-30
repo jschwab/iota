@@ -1,3 +1,4 @@
+import logging
 import os
 import os.path
 from pybtex.database.input import bibtex
@@ -129,7 +130,7 @@ def index(database, args):
     """Index a paperdir"""
 
     # give a brief status update
-    print("indexing paperdir: {}".format(args.paperdir))
+    logging.info("Indexing paperdir: {}".format(args.paperdir))
 
     # get Xapian ready
     # TODO
@@ -138,21 +139,21 @@ def index(database, args):
 
         # it contains no sub-directories
         if len(dirs) != 0:
-            print("skipping {}: no subdirectories".format(root))
+            logging.debug("Skipping {}: has subdirectories".format(root))
             continue
 
         # convert directory into paper object
         try:
             paper = Paper(root, files)
         except PaperError as e:
-            print(e)
+            logging.debug(e)
             continue
 
         # add paper object to Xapian database
         try:
             index_paper(database, paper)
         except PaperIndexError as e:
-            print(e)
+            logging.debug(e)
             continue
 
-        print("Added {}".format(root))
+        logging.info("Added {}".format(root))
