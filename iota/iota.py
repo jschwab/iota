@@ -31,6 +31,10 @@ TERMPREFIXES = (
     ('abstract', TERMPREFIX_ABSTRACT),
 )
 
+class IotaError(Exception):
+    """Base class for exceptions in Iota."""
+    pass
+
 if __name__ == '__main__':
 
     from fetch import fetch
