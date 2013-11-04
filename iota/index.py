@@ -4,17 +4,11 @@ import os.path
 from pybtex.database.input import bibtex
 import xapian
 import iota
+import json
 
-class Error(Exception):
-    """Base class for exceptions in this module."""
+class IndexError(iota.IotaError):
+    """Base class for exceptions in iota index module."""
     pass
-
-class PaperError(Error):
-    pass
-
-class PaperIndexError(Error):
-    pass
-
 
 class Paper:
     """A directory which represents a paper"""
@@ -29,9 +23,9 @@ class Paper:
         if len(bibfiles) == 1:
             self.bibfile = bibfiles[0]
         elif len(bibfiles) == 0:
-            raise PaperError(self.path, "no BibTeX file")
+            raise IndexError(self.path, "no BibTeX file")
         else:
-            raise PaperError(self.path, "more than one BibTeX file")
+            raise IndexError(self.path, "more than one BibTeX file")
 
         # that BibTeX file must contain exactly one bibliography entry
         parser = bibtex.Parser()
@@ -40,7 +34,7 @@ class Paper:
             self.bibkey = [x for x in bibdata.entries][0]
             self.bibdata = bibdata.entries[self.bibkey]
         else:
-            raise PaperError(self.bibfile, "more than one BibTeX entry in file")
+            raise IndexError(self.bibfile, "more than one BibTeX entry in file")
 
         # usually, it will contain one PDF (.pdf) file with the same
         # basename as the BibTeX file
@@ -57,6 +51,56 @@ class Paper:
             files.remove(self.pdffile)
         self.otherfiles = files
 
+    def data(self):
+        data = {}
+
+        # paths and file data
+        data['path'] = self.path
+        data['pdffile'] = self.pdffile
+        data['bibfile'] = self.bibfile
+        data['otherfiles'] = self.otherfiles
+
+        # information about the paper itself
+
+        # the BibTeX entry must have a title
+        try:
+            title = self.bibdata.fields['title'].strip('{}')
+        except KeyError:
+            raise IndexError('BibTeX file does not contain a title')
+        else:
+            data['title'] = title
+
+        # the BibTeX entry must have authors
+        try:
+            authors = self.bibdata.persons['author']
+        except KeyError:
+            raise IndexError('BibTeX file does not contain authors')
+        else:
+            data['authors'] = [unicode(x) for x in authors]
+
+        # the abstract
+        try:
+            abstract = self.bibdata.fields['abstract']
+        except KeyError:
+            abstract = None
+        data['abstract'] = abstract
+
+        # the year
+        try:
+            year = self.bibdata.fields['year']
+        except KeyError:
+            year = None
+        data['year'] = year
+
+        # the keywords
+        try:
+            keywords = self.bibdata.fields['keywords']
+        except KeyError:
+            keywords = None
+        data['keywords'] = keywords
+
+        return data
+
 
 def index_paper(database, paper):
     """Add the information from a paper to the Xapian index"""
@@ -69,62 +113,36 @@ def index_paper(database, paper):
     doc = xapian.Document()
     termgenerator.set_document(doc)
 
-    # the BibTeX entry must have a title
-    try:
-        title = paper.bibdata.fields['title']
-    except KeyError:
-        raise PaperIndexError('BibTeX file does not contain a title')
-    else:
-        termgenerator.index_text(title, 1, iota.TERMPREFIX_TITLE)
+    data = paper.data()
+    doc.set_data(json.dumps(data, encoding='utf8'))
 
-    # the BibTeX entry must have authors
-    try:
-        authors = paper.bibdata.persons['author']
-    except KeyError:
-        raise PaperIndexError('BibTeX file does not contain authors')
-    else:
-        for author in authors:
-            termgenerator.index_text(unicode(author), 1, iota.TERMPREFIX_AUTHOR)
+    # these data must exist
+    termgenerator.index_text(data['title'], 1, iota.TERMPREFIX_TITLE)
 
-    # it is ok if the following information is unset
+    for author in data['authors']:
+        termgenerator.index_text(author, 1, iota.TERMPREFIX_AUTHOR)
 
-    # the abstract
-    try:
-        abstract = paper.bibdata.fields['abstract']
-    except KeyError:
-        abstract = None
-    else:
-        # use a custom prefix "XA" for abstract
-        termgenerator.index_text(abstract, 1, iota.TERMPREFIX_ABSTRACT)
+    # these data may not exist
+    if data['abstract'] is not None:
+        termgenerator.index_text(data['abstract'], 1, iota.TERMPREFIX_ABSTRACT)
 
-    # the year
-    try:
-        year = paper.bibdata.fields['year']
-    except KeyError:
-        pass
-    else:
-        termgenerator.index_text(year, 1, iota.TERMPREFIX_YEAR)
+    if data['year'] is not None:
+        termgenerator.index_text(data['year'], 1, iota.TERMPREFIX_YEAR)
 
-    # the keywords
-    try:
-        keywords = paper.bibdata.fields['keywords']
-    except KeyError:
-        pass
-    else:
-        termgenerator.index_text(keywords, 1, iota.TERMPREFIX_KEYWORD)
+    if data['keywords'] is not None:
+        termgenerator.index_text(data['keywords'], 1, iota.TERMPREFIX_KEYWORD)
 
     # Index title & abstract fields for general search
-    termgenerator.index_text(title)
-    if abstract is not None:
+    termgenerator.index_text(data['title'])
+    if data['abstract'] is not None:
         termgenerator.increase_termpos()
-        termgenerator.index_text(abstract)
+        termgenerator.index_text(data['abstract'])
 
     # We use the bibkey to ensure each object ends up in the database
     # only once no matter how many times we run the indexer.
     idterm = u"Q" + paper.bibkey
     doc.add_boolean_term(idterm)
     database.replace_document(idterm, doc)
-
 
 def index(database, args):
     """Index a paperdir"""
@@ -145,14 +163,14 @@ def index(database, args):
         # convert directory into paper object
         try:
             paper = Paper(root, files)
-        except PaperError as e:
+        except IndexError as e:
             logging.debug(e)
             continue
 
         # add paper object to Xapian database
         try:
             index_paper(database, paper)
-        except PaperIndexError as e:
+        except IndexError as e:
             logging.debug(e)
             continue
 
