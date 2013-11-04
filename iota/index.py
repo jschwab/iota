@@ -5,11 +5,16 @@ from pybtex.database.input import bibtex
 import xapian
 import iota
 import json
+import sys
 
 class IndexError(iota.IotaError):
     """Base class for exceptions in iota index module."""
     pass
 
+INDEX_SEXP = """(
+    :count {count}
+)
+"""
 class Paper:
     """A directory which represents a paper"""
 
@@ -153,6 +158,8 @@ def index(database, args):
     # get Xapian ready
     # TODO
 
+    paper_count = 0
+
     for root, dirs, files in os.walk(args.paperdir):
 
         # it contains no sub-directories
@@ -174,4 +181,7 @@ def index(database, args):
             logging.debug(e)
             continue
 
+        paper_count += 1
         logging.info("Added {}".format(root))
+
+    return [INDEX_SEXP.format(count=paper_count)]

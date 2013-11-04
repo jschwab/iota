@@ -15,6 +15,13 @@ ADS_BIBTEX_URL = "http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode={}&dat
 ADS_PAPER_URL = "http://adsabs.harvard.edu/cgi-bin/nph-data_query?bibcode={}&link_type=ARTICLE&db_key=AST&high="
 ARXIV_PAPER_URL = "http://arxiv.org/pdf/{}.pdf"
 
+FETCH_SEXP = """(
+    :path {path}
+    :bibfile {bibfile}
+    :pdffile {pdffile}
+)
+"""
+
 
 def arXiv2ADS(arxiv_id):
     request = urllib2.urlopen("http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:{}".format(arxiv_id))
@@ -141,3 +148,9 @@ def fetch(database, args):
     logging.info("Saved PDF file %s", pdffilename)
 
     # TODO: check that you actually got a PDF!
+
+    sexp = FETCH_SEXP.format(path = uniquedir,
+                             bibfile = bibfilename,
+                             pdffile = pdffilename)
+
+    return [sexp]

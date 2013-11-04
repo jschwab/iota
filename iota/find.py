@@ -1,13 +1,28 @@
 import iota
+import json
+import logging
 import xapian
+import sys
 
 PAPER_SEXP = """(
-    :docid {0}
-)"""
+    :docid {docid}
+    :title {title}
+    :path {path}
+)
+"""
 
+def match_as_sexp(match):
+    data = json.loads(match.document.get_data())
+    sexp = PAPER_SEXP.format(docid=match.docid,
+                             title='"{}"'.format(data['title']),
+                             authors=data['authors'],
+                             path=data['path'])
+    return sexp
 
-def format_sexp(match):
-    return PAPER_SEXP.format(match.docid)
+def result(mset):
+    sexps = [match_as_sexp(match) for match in mset]
+    sexps.append('(:count {})\n'.format(len(mset)))
+    return sexps
 
 def find(database, args):
 
@@ -28,7 +43,7 @@ def find(database, args):
     enquire.set_query(query)
 
     # And print out something about each match
-    print("execute query: {}".format(args.query))
-    for match in enquire.get_mset(0, 10):
-        print(match.document)
-        print(format_sexp(match))
+    logging.info("execute query: {}".format(args.query))
+    mset = enquire.get_mset(0, 100)
+
+    return result(mset)
