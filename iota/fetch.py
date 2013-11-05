@@ -1,4 +1,5 @@
 import StringIO
+import webbrowser
 import logging
 import os
 import re
@@ -10,10 +11,14 @@ from pybtex.database.input import bibtex
 ID_BIBCODE = re.compile("^(\d{4})(.{14})([A-Z])$")
 ID_arXiv = re.compile("^\d{4}.\d{4}$")
 
+# TODO: convert all of this to urlparse
+
 ADS_BIBTEX_URL = "http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode={}&data_type=BIBTEXPLUS&db_key=AST&nocookieset=1"
 
 ADS_PAPER_URL = "http://adsabs.harvard.edu/cgi-bin/nph-data_query?bibcode={}&link_type=ARTICLE&db_key=AST&high="
 ARXIV_PAPER_URL = "http://arxiv.org/pdf/{}.pdf"
+
+EXTERNAL_PAPER_URL = "http://adsabs.harvard.edu/cgi-bin/nph-data_query?bibcode={}&link_type=EJOURNAL&db_key=AST&db_key=PHY&high="
 
 FETCH_SEXP = """(
     :path {path}
@@ -138,14 +143,19 @@ def fetch(database, args):
         logging.debug("Created directory %s", uniquedir)
 
     # save the BibTeX file
-    bibfilename = os.path.join(uniquedir, "{}.bib".format(paper.name()))
-    paper.save_bibtex(bibfilename)
+    bibfilename = "{}.bib".format(paper.name())
+    paper.save_bibtex(os.path.join(uniquedir, bibfilename))
     logging.info("Saved BibTeX file %s", bibfilename)
 
     # download a PDF
-    pdffilename = os.path.join(uniquedir, "{}.pdf".format(paper.name()))
-    paper.save_pdf(pdffilename)
-    logging.info("Saved PDF file %s", pdffilename)
+    pdffilename = "{}.pdf".format(paper.name())
+    try:
+        paper.save_pdf(os.path.join(uniquedir, pdffilename))
+    except urllib2.HTTPError:
+        pdffilename = 'nil'
+        webbrowser.open(EXTERNAL_PAPER_URL.format(paper.bibcode))
+    else:
+        logging.info("Saved PDF file %s", pdffile)
 
     # TODO: check that you actually got a PDF!
 
