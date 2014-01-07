@@ -155,7 +155,7 @@ def fetch(database, args):
         pdffilename = 'nil'
         webbrowser.open(EXTERNAL_PAPER_URL.format(paper.bibcode))
     else:
-        logging.info("Saved PDF file %s", pdffile)
+        logging.info("Saved PDF file %s", pdffilename)
 
     # TODO: check that you actually got a PDF!
 

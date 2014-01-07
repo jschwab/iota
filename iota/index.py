@@ -66,6 +66,7 @@ class Paper:
         data['otherfiles'] = self.otherfiles
 
         # information about the paper itself
+        data['bibkey'] = self.bibkey
 
         # the BibTeX entry must have a title
         try:
@@ -96,6 +97,13 @@ class Paper:
         except KeyError:
             year = None
         data['year'] = year
+
+        # the month
+        try:
+            month = self.bibdata.fields['month']
+        except KeyError:
+            month = ''
+        data['month'] = month
 
         # the keywords
         try:

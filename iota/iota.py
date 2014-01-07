@@ -37,6 +37,7 @@ class IotaError(Exception):
 
 if __name__ == '__main__':
 
+    from export import export
     from fetch import fetch
     from find import find
     from index import index
@@ -84,6 +85,10 @@ if __name__ == '__main__':
     parser_fetch.add_argument('id', metavar='id',
                               help='ADS/arXiv id for the paper')
     parser_fetch.set_defaults(func=fetch)
+
+    # create the parser for the "export" command
+    parser_find = subparsers.add_parser('export', help='export paperdir to BibTeX')
+    parser_find.set_defaults(func=export)
 
     args = parser.parse_args()
 
