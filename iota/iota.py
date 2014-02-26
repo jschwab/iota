@@ -5,31 +5,40 @@ import logging
 import os.path
 import xapian
 
-VERSION="(prerelease)"
+VERSION = "(prerelease)"
 
 # define a set of term prefixes for Xapian
 # begin with a subset of the ones from
 # http://xapian.org/docs/omega/termprefixes
 
-TERMPREFIX_AUTHOR='A'
-TERMPREFIX_DATE='D'
-TERMPREFIX_KEYWORD='K'
-TERMPREFIX_MONTH='M'
-TERMPREFIX_PATHNAME='P'
-TERMPREFIX_UNIQUEID='Q'
-TERMPREFIX_TITLE='S'
-TERMPREFIX_YEAR='Y'
+TERMPREFIX_AUTHOR = 'A'
+TERMPREFIX_DATE = 'D'
+TERMPREFIX_KEYWORD = 'K'
+TERMPREFIX_MONTH = 'M'
+TERMPREFIX_PATHNAME = 'P'
+TERMPREFIX_UNIQUEID = 'Q'
+TERMPREFIX_TITLE = 'S'
+TERMPREFIX_YEAR = 'Y'
 
 # and extend via X*
-TERMPREFIX_ABSTRACT='XA'
-TERMPREFIX_JOURNAL='XJ'
+TERMPREFIX_ABSTRACT = 'XA'
+TERMPREFIX_JOURNAL = 'XJ'
 
 TERMPREFIXES = (
-    ('author',TERMPREFIX_AUTHOR),
+    ('author', TERMPREFIX_AUTHOR),
     ('keyword', TERMPREFIX_KEYWORD),
     ('year', TERMPREFIX_YEAR),
     ('abstract', TERMPREFIX_ABSTRACT),
 )
+
+SLOT_YEAR = 0
+SLOT_1AU = 1
+
+SLOTS = {
+    'year': SLOT_YEAR,
+    '1au': SLOT_1AU,
+}
+
 
 class IotaError(Exception):
     """Base class for exceptions in Iota."""

@@ -1,20 +1,22 @@
+import json
 import logging
 import os
-import os.path
-from pybtex.database.input import bibtex
 import xapian
+
+from pybtex.database.input import bibtex
+
 import iota
-import json
-import sys
+import utils
+
 
 class IndexError(iota.IotaError):
     """Base class for exceptions in iota index module."""
-    pass
 
-INDEX_SEXP = """(
-    :count {count}
-)
-"""
+    def __init__(self, path, msg):
+        self.path = path
+        self.msg = msg
+
+
 class Paper:
     """A directory which represents a paper"""
 
@@ -72,17 +74,24 @@ class Paper:
         try:
             title = self.bibdata.fields['title'].strip('{}')
         except KeyError:
-            raise IndexError('BibTeX file does not contain a title')
+            raise IndexError(self.path, 'BibTeX file does not contain a title')
         else:
+            # don't allow the empty string
+            if not title:
+                raise IndexError(self.path, 'BibTeX file does not contain a title')
             data['title'] = title
 
         # the BibTeX entry must have authors
         try:
             authors = self.bibdata.persons['author']
         except KeyError:
-            raise IndexError('BibTeX file does not contain authors')
+            raise IndexError(self.path, 'BibTeX file does not contain authors')
         else:
             data['authors'] = [unicode(x) for x in authors]
+
+        # the first author is special
+        data['1au'] = utils.sanitize_string(data['authors'][0],
+                                            exceptions=".,- ")
 
         # the abstract
         try:
@@ -132,8 +141,11 @@ def index_paper(database, paper):
     # these data must exist
     termgenerator.index_text(data['title'], 1, iota.TERMPREFIX_TITLE)
 
-    for author in data['authors']:
+    for i, author in enumerate(data['authors']):
         termgenerator.index_text(author, 1, iota.TERMPREFIX_AUTHOR)
+        # the first author is special
+        if i == 0:
+            doc.add_value(iota.SLOT_1AU, author)
 
     # these data may not exist
     if data['abstract'] is not None:
@@ -141,6 +153,7 @@ def index_paper(database, paper):
 
     if data['year'] is not None:
         termgenerator.index_text(data['year'], 1, iota.TERMPREFIX_YEAR)
+        doc.add_value(iota.SLOT_YEAR, data['year'])
 
     if data['keywords'] is not None:
         termgenerator.index_text(data['keywords'], 1, iota.TERMPREFIX_KEYWORD)
@@ -192,4 +205,4 @@ def index(database, args):
         paper_count += 1
         logging.info("Added {}".format(root))
 
-    return [INDEX_SEXP.format(count=paper_count)]
+    return {"count": paper_count}

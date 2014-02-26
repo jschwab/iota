@@ -4,6 +4,9 @@ import iota
 from fetch import fetch
 from find import find
 from index import index
+from view import view
+from utils import parse_command
+
 
 class IotaServer(cmd.Cmd):
 
@@ -13,12 +16,12 @@ class IotaServer(cmd.Cmd):
                                    self._cookie_post)
         return ''.join((cookie,sexp))
 
-
-    def print_sexp(self,sexps):
-        sys.stdout.write(self._cookieify('(:erase t)\n'))
+    def print_sexp(self, sexps, erase=True):
+        sys.stdout.write("\n")
+        if erase: sys.stdout.write(self._cookieify('(:erase t)\n'))
         for sexp in sexps:
             sys.stdout.write(self._cookieify(sexp))
-
+        sys.stdout.flush()
 
     def __init__(self, database, args):
 
@@ -42,8 +45,19 @@ class IotaServer(cmd.Cmd):
         """
         return -1
 
+    def do_quit(self, args):
+        return self.do_exit(args)
+
     def do_EOF(self, args):
         return self.do_exit(args)
+
+    def do_ping(self, args):
+        """Say pong to a ping
+
+        iota> ping
+        """
+        sexps = ('(:pong "iota" :props (:version "{}"))\n'.format(iota.VERSION),)
+        self.print_sexp(sexps, erase=False)
 
     def do_fetch(self, id):
         """Fetch a paper from ADS given the id
@@ -54,14 +68,32 @@ class IotaServer(cmd.Cmd):
         sexps = fetch(self.database, self.args)
         self.print_sexp(sexps)
 
-    def do_find(self, query):
-        """Find papers from ADS given the query
+    def do_find(self, command):
+        """Find papers from the paperdir
 
-        iota> find query
+        iota> find query:"test" sortfield:year reverse:True maxnum:50
         """
-        self.args.query = query
-        sexps = find(self.database, self.args)
-        self.print_sexp(sexps)
+        c = parse_command(command)
+        try:
+            sexps = find(self.database, **c)
+        except TypeError as e:
+            raise e
+        else:
+            self.print_sexp(sexps)
+
+
+    def do_view(self, command):
+        """View a paper from the paperdir given a docid
+
+        iota> view docid:1
+        """
+        c = parse_command(command)
+        try:
+            sexps = view(self.database, **c)
+        except TypeError:
+            pass
+        else:
+            self.print_sexp(sexps)
 
 
     def do_index(self, args):
@@ -71,6 +103,8 @@ class IotaServer(cmd.Cmd):
         """
         sexps = index(self.database, self.args)
         self.print_sexp(sexps)
+
+
 
 def server(database, args):
 
