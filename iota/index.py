@@ -87,11 +87,20 @@ class Paper:
         except KeyError:
             raise IndexError(self.path, 'BibTeX file does not contain authors')
         else:
-            data['authors'] = [unicode(x) for x in authors]
+            data['authors'] = [utils.sanitize_string(unicode(x),
+                                                     exceptions=".,- ")
+                               for x in authors]
 
         # the first author is special
         data['1au'] = utils.sanitize_string(data['authors'][0],
                                             exceptions=".,- ")
+
+        # the journal
+        try:
+            journal = self.bibdata.fields['journal']
+        except KeyError:
+            journal = None
+        data['journal'] = utils.canonical_journal(journal)
 
         # the abstract
         try:
@@ -158,11 +167,15 @@ def index_paper(database, paper):
     if data['keywords'] is not None:
         termgenerator.index_text(data['keywords'], 1, iota.TERMPREFIX_KEYWORD)
 
-    # Index title & abstract fields for general search
+    # Index title, authors & abstract fields for general search
     termgenerator.index_text(data['title'])
+    for author in data['authors']:
+        termgenerator.increase_termpos()
+        termgenerator.index_text(author)
     if data['abstract'] is not None:
         termgenerator.increase_termpos()
         termgenerator.index_text(data['abstract'])
+
 
     # We use the bibkey to ensure each object ends up in the database
     # only once no matter how many times we run the indexer.

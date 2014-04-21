@@ -1,7 +1,7 @@
 import iota
 import json
 import logging
-import sexpdata
+import utils
 
 def view(database, docid):
     """fill this in
@@ -12,5 +12,6 @@ def view(database, docid):
         return None
     else:
         v = {'view': json.loads(paper.get_data())}
+        v['view']['docid'] = docid
 
-    return sexpdata.dumps(v)
+    return [utils.to_sexp(v)]

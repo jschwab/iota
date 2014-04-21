@@ -29,3 +29,32 @@ def parse_command(command):
 def to_sexp(d):
     """Make a sexp string out of a python data structure"""
     return sexpdata.dumps(d).encode('ascii')
+
+
+def canonical_journal(name):
+    "Return a canonical journal name."
+
+    known_journals = {
+        '\\araa': 'Ann. Rev.',
+        '\\aap': 'A&A',
+        '\\apj': 'ApJ',
+        '\\apjl': 'ApJL',
+        '\\apjs': 'ApJS',
+        'ArXiv e-prints': 'arXiv',
+        '\\icarus': 'Icarus',
+        '\\mnras': 'MNRAS',
+        '\\nat': 'Nature',
+        '\\pra': 'Phys Rev A',
+        '\\prb': 'Phys Rev B',
+        '\\prc': 'Phys Rev C',
+        '\\prd': 'Phys Rev D',
+        '\\pre': 'Phys Rev E',
+        '\\sci': 'Science',
+    }
+
+    if name in known_journals:
+        return known_journals[name]
+    elif name is None:
+        return "<unknown>"
+    else:
+        return name

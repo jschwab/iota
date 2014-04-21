@@ -12,7 +12,7 @@ def match_as_sexp(match):
     data = json.loads(match.document.get_data())
     s = {'header': True}
     s['docid'] = int(match.docid)
-    for k in ('title', '1au'):
+    for k in ('title', '1au', 'journal'):
         s[k] = data[k]
     s['year'] = int(data['year'])
     sexp = to_sexp(s)
