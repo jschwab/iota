@@ -78,7 +78,7 @@ def export(database, args):
 
     # loop over papers
     papers = sorted([Paper(match.document.get_data()) for match in matches],
-                    key=operator.attrgetter('year', 'month', 'author'))
+                    key=operator.attrgetter('year', 'author', 'month'))
 
     # add in disambiguation
     for previous_paper, paper in with_previous(papers):
