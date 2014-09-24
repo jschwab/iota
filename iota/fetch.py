@@ -6,7 +6,7 @@ import re
 import sys
 import urllib2
 from pybtex.database.input import bibtex
-
+import iota
 
 ID_BIBCODE = re.compile("^(\d{4})(.{14})([A-Z])$")
 ID_arXiv = re.compile("^\d{4}.\d{4}$")
@@ -26,6 +26,13 @@ FETCH_SEXP = """(
     :pdffile {pdffile}
 )
 """
+
+class FetchError(iota.IotaError):
+    """Base class for exceptions in iota fetch module."""
+
+    def __init__(self, adsid, msg):
+        self.adsid = adsid
+        self.msg = msg
 
 
 def arXiv2ADS(arxiv_id):
@@ -49,8 +56,7 @@ class ADSPaper:
             self._paper_url = ARXIV_PAPER_URL
             logging.info("%s is a valid arXiv id", id)
         else:
-            pass
-            # raise ADSError("Not a valid bibcode")
+            raise FetchError(id, "Not a valid bibcode")
 
         # prepare to retrieve BibTeX information
         self._bibtex = None
@@ -137,8 +143,7 @@ def fetch(database, args):
     try:
         os.mkdir(uniquedir)
     except OSError:
-        logging.warning("This paper is already present in your library")
-        return
+        raise FetchError(args.id, "This paper is already present in your library")
     else:
         logging.debug("Created directory %s", uniquedir)
 

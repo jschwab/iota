@@ -8,7 +8,6 @@ from pybtex.database.input import bibtex
 import iota
 import utils
 
-
 class IndexError(iota.IotaError):
     """Base class for exceptions in iota index module."""
 
@@ -218,4 +217,4 @@ def index(database, args):
         paper_count += 1
         logging.info("Added {}".format(root))
 
-    return {"count": paper_count}
+    return [utils.to_sexp({"count": paper_count})]

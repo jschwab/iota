@@ -1,7 +1,8 @@
+import logging
 import cmd
 import sys
 import iota
-from fetch import fetch
+from fetch import fetch, FetchError
 from find import find
 from index import index
 from view import view
@@ -65,8 +66,12 @@ class IotaServer(cmd.Cmd):
         iota> fetch id
         """
         self.args.id = id
-        sexps = fetch(self.database, self.args)
-        self.print_sexp(sexps)
+        try:
+            sexps = fetch(self.database, self.args)
+        except FetchError as e:
+            logging.error(e.msg)
+        else:
+            self.print_sexp(sexps)
 
     def do_find(self, command):
         """Find papers from the paperdir
