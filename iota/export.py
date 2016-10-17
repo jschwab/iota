@@ -5,19 +5,12 @@ from pybtex.database.input import bibtex
 import xapian
 import iota
 import json
-import os
 import datetime
-from pybtex.database.input import bibtex
 import calendar
 import operator
-from itertools import tee, islice, chain, izip
 import string
 
-def with_previous(some_iterable):
-    "Iterate with access to previous value"
-    prevs, items = tee(some_iterable, 2)
-    prevs = chain([None], prevs)
-    return izip(prevs, items)
+from utils import with_previous
 
 class ExportError(iota.IotaError):
     """Base class for exceptions in iota export module."""
@@ -81,6 +74,7 @@ def export(database, args):
                     key=operator.attrgetter('year', 'author', 'month'))
 
     # add in disambiguation
+    ndupes = 0
     for previous_paper, paper in with_previous(papers):
 
         paper.disambiguation = ''
@@ -94,8 +88,20 @@ def export(database, args):
             else:
                 ndupes = 0
 
-    # construct final biblography
-    for paper in papers:
-        print(paper.bibentry())
+    if False:
+        for paper in papers:
+            print(paper.bibentry())
+    else:
+        with open('Papers.bib', 'w') as f:
+            for paper in papers:
+
+                # add bib entry
+                f.write(paper.bibentry())
+
+                # add symlink
+                if paper.data['pdffile'] is not None:
+                    p1 = os.path.join(paper.data['path'], paper.data['pdffile'])
+                    p2 = "./pdfs/{}.pdf".format(paper.citekey())
+                    os.symlink(p1, p2)
 
     return [EXPORT_SEXP.format(count=paper_count)]

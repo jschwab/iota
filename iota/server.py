@@ -7,7 +7,7 @@ from find import find
 from index import index
 from view import view
 from utils import parse_command
-
+from show import show
 
 class IotaServer(cmd.Cmd):
 
@@ -95,6 +95,20 @@ class IotaServer(cmd.Cmd):
         c = parse_command(command)
         try:
             sexps = view(self.database, **c)
+        except TypeError:
+            pass
+        else:
+            self.print_sexp(sexps)
+
+
+    def do_open(self, command):
+        """Open a paper from the paperdir given a docid
+
+        iota> open docid:1
+        """
+        c = parse_command(command)
+        try:
+            sexps = show(self.database, **c)
         except TypeError:
             pass
         else:

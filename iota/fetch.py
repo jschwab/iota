@@ -9,7 +9,7 @@ from pybtex.database.input import bibtex
 import iota
 
 ID_BIBCODE = re.compile("^(\d{4})(.{14})([A-Z])$")
-ID_arXiv = re.compile("^\d{4}.\d{4}$")
+ID_arXiv = re.compile("^\d{4}.\d{4,5}$")
 
 # TODO: convert all of this to urlparse
 

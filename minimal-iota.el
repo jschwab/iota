@@ -11,4 +11,9 @@
 ;; add latest org-mode to load path
 (add-to-list 'load-path (expand-file-name "/home/jschwab/Software/iota/iota4e/"))
 
+;; crank up the pdf resolution
+(setq doc-view-resolution 150)
+
+
+
 (require 'iota4e)

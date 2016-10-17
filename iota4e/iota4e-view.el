@@ -186,6 +186,7 @@ FUNC should be a function taking two arguments:
 
       (define-key map "." 'iota4e-view-raw-paper)
       (define-key map "," 'iota4e-view-pdf-paper)
+      (define-key map "o" 'iota4e-show-pdf-paper)
       (define-key map "|" 'iota4e-view-pipe)
       (define-key map "a" 'iota4e-view-action)
 
@@ -479,6 +480,12 @@ anymore, go the next paper."
         (goto-char (point-min))))
     (switch-to-buffer buf)))
 
+
+(defun iota4e-show-pdf-paper ()
+  "Open the PDF of the paper at point in an external program."
+  (interactive)
+  (let ((docid (iota4e-paper-field-at-point :docid)))
+    (iota4e~proc-open docid)))
 
 (defun iota4e~view-quit-buffer ()
   "Quit the iota4e-view buffer.

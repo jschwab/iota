@@ -1,0 +1,3 @@
+#!/bin/bash
+
+emacs -Q -l minimal-iota.el -f iota4e

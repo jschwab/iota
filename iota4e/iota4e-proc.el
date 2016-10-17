@@ -181,6 +181,12 @@ The result will be delivered to the function registered as
     "view docid:%s"
     docid))
 
+(defun iota4e~proc-open (docid)
+  "Open a particular paper based on its DOCID."
+  (iota4e~proc-send-command
+    "open docid:%s"
+    docid))
+
 
 (provide 'iota4e-proc)
 ;; End of iota3-proc.el
