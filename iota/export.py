@@ -51,7 +51,7 @@ class Paper:
         return ''.join(lines)
 
     def citekey(self):
-        return "{}{}{}".format(self.author,str(self.year)[2:],self.disambiguation)
+        return "{}{}{}".format(self.author,str(self.year),self.disambiguation)
 
     def __repr__(self):
         return repr((self.author, self.year, self.month))

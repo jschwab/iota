@@ -47,7 +47,7 @@ class IotaError(Exception):
 if __name__ == '__main__':
 
     from export import export
-    from fetch import fetch
+    from fetch import fetch, fetch_url, FetchError
     from find import find
     from index import index
     from server import server
@@ -95,6 +95,12 @@ if __name__ == '__main__':
                               help='ADS/arXiv id for the paper')
     parser_fetch.set_defaults(func=fetch)
 
+    # create the parser for the "url" command
+    parser_url = subparsers.add_parser('url', help='fetch url')
+    parser_url.add_argument('url', metavar='url',
+                            help='url associated with the paper')
+    parser_url.set_defaults(func=fetch_url)
+
     # create the parser for the "export" command
     parser_find = subparsers.add_parser('export', help='export paperdir to BibTeX')
     parser_find.set_defaults(func=export)
@@ -109,6 +115,9 @@ if __name__ == '__main__':
     # open up a Xapian connection
     db = xapian.WritableDatabase(args.xapiandb, xapian.DB_CREATE_OR_OPEN)
 
-    args.func(db, args)
+    try:
+        args.func(db, args)
+    except (IotaError, FetchError) as err:
+        logging.error(err.msg)
 
     logging.debug('Finished iota')
