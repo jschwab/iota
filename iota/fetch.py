@@ -1,15 +1,17 @@
 import StringIO
 import webbrowser
+from collections import namedtuple
 import logging
 import os
 import re
 import sys
+from urllib import unquote
 import urllib2
 from pybtex.database.input import bibtex
 import iota
 
-ID_BIBCODE = re.compile("^(\d{4})(.{14})([A-Z])$")
-ID_arXiv = re.compile("^\d{4}.\d{4,5}$")
+ID_BIBCODE = re.compile("(\d{4})(\S{14})([A-Z])")
+ID_arXiv = re.compile("\d{4}\.\d{4,5}")
 
 # TODO: convert all of this to urlparse
 
@@ -169,3 +171,32 @@ def fetch(database, args):
                              pdffile = pdffilename)
 
     return [sexp]
+
+def fetch_url(database, args):
+
+    # remove prefix and unquote
+    url_prefix = "iota-protocol://"
+    if args.url.startswith(url_prefix):
+        # have to do it twice b/c of A&A
+        url = unquote(unquote(args.url[len(url_prefix):]))
+    else:
+        raise FetchError
+
+    logging.info("Trying to fetch from %s", url)
+
+    s = ID_BIBCODE.search(url)
+    if s is not None:
+        id = s.group(0)
+        logging.info("extracted a valid ADS id: %s ", id)
+        args.id = id
+        return fetch(database, args)
+
+    s = ID_arXiv.search(url)
+    if s is not None:
+        id = s.group(0)
+        logging.info("extracted a valid arXiv id: %s ", id)
+        args.id = id
+        return fetch(database, args)
+
+
+    raise FetchError(url, "Failed to extract a valid id")
